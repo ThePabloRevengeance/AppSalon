@@ -1,0 +1,23 @@
+.paginacion{
+    display: flex;
+    justify-content: space-between;
+    margin-top: $separacion;
+    button{
+        background-color: $azul;
+        padding: 1rem 3rem;
+        display: block;//Para que tome todo el ancho disponible
+        text-align: center;
+        color: $blanco;
+        border: none;
+        font-weight: $black;
+        font-size: 2rem;
+        text-transform: uppercase;
+        &:hover{
+            cursor: pointer;
+        }
+
+        &.ocultar{
+            visibility: hidden; //Me oculta el coso, pero sigue ahí
+        }
+    }
+}

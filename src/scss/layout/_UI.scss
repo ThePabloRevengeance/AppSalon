@@ -1,0 +1,38 @@
+
+body{
+    background-color: $negro;
+}
+
+.contenedor-estetica{
+    @include tablet{
+      height: 100vh;
+      @include grid(2, $separacion / 2);
+    }
+    .imagen{
+        height: 30rem;
+        background-image: url(../img/1.jpg); //El que se vea la imagen depende de su altura
+        background-size: cover;
+        background-position: center center;
+        @include tablet{
+            height: auto;
+        }
+    }
+}
+
+.app{
+    width: 95%;
+    margin: 0 auto;
+    padding-top: $separacion / 2;
+
+    .seccion{
+        display: none; //Esto oculta los seccion
+        margin-top: $separacion / 2;
+        //&:first-of-type{
+        //    display: block; //Esto muestra el primer elemento con clase seccion
+        //}
+    }
+}
+
+.mostrar-seccion {
+    display: block!important; //Si importan, por mas especifico que sea el selector, va a pasarle por encima
+}
