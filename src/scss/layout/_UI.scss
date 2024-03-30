@@ -1,38 +1,68 @@
-
-body{
-    background-color: $negro;
+html {
+    height: 100%;
 }
-
-.contenedor-estetica{
-    @include tablet{
-      height: 100vh;
-      @include grid(2, $separacion / 2);
+body {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: $negro;
+    color: $blanco;
+}
+.contenedor-estetica {
+    @include tablet {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        min-height: 100vh;
     }
-    .imagen{
-        height: 30rem;
-        background-image: url(../img/1.jpg); //El que se vea la imagen depende de su altura
+
+    .imagen {
+        background-image: url(../img/1.jpg);
         background-size: cover;
         background-position: center center;
-        @include tablet{
+        height: 30rem;
+    
+        @include tablet {
             height: auto;
         }
     }
-}
-
-.app{
-    width: 95%;
-    margin: 0 auto;
-    padding-top: $separacion / 2;
-
-    .seccion{
-        display: none; //Esto oculta los seccion
-        margin-top: $separacion / 2;
-        //&:first-of-type{
-        //    display: block; //Esto muestra el primer elemento con clase seccion
-        //}
+    .app {
+        width: 95%;
+        margin: 0 auto;
     }
 }
 
+
+.seccion {
+    display: none;
+}
 .mostrar-seccion {
-    display: block!important; //Si importan, por mas especifico que sea el selector, va a pasarle por encima
+    display: block;
+}
+.btn {
+    background-color: $azul;
+    margin-top: 2rem;
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 1rem 5rem;
+    color: $blanco;
+    font-weight: $bold;
+    text-transform: uppercase;
+    border: none;
+
+    @include telefono {
+        width: auto;
+    }
+
+    &.btn-block {
+        width: 100%;
+        background-color:$blanco;
+        color: $azul;
+        font-size: 2rem;
+        padding: 2rem;
+    }
+
+    &:hover {
+        cursor: pointer;
+    }
 }

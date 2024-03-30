@@ -1,31 +1,33 @@
-.formulario{
-    width:100%;
+.formulario {
+    width: 100%;
 }
-
 .campo {
     display: flex;
-    align-items: center;
     margin-bottom: 2rem;
-    label{
-        flex:0 0 10rem;
-        color: $blanco;
-    }
+    align-items: center;
 
-    input{
-        flex:1;
+    label {
+        flex: 0 0 10rem;
+    }
+    input {
+        flex: 1;
+        border: none;
         padding: $separacion / 4;
         border-radius: 1rem;
-        border: none;
     }
 }
 
 .alerta {
-    padding: $separacion / 2;
+    padding: $separacion / 2 ;
     text-align: center;
     color: $blanco;
     width: 100%;
-    display: block; //Para asegurarnos de que este debajo del otro elemento  
+    display: block;
+
     &.error {
-        background-color: rgb(194,0,0);
+        background-color: rgb(194, 0, 0);
+    }
+    &.exito {
+        background-color: $azul;
     }
 }

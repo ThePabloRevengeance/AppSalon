@@ -1,318 +1,263 @@
-let pagina = 1; //Variable igual a 1
+let pagina = 1;
 
-const cita = { nombre: '', fecha: '', hora: '', servicios: [] }
-
-document.addEventListener('DOMContentLoaded', function(){
+const cita = {
+    nombre: '',
+    fecha: '',
+    hora: '',
+    servicios: []
+}
+document.addEventListener('DOMContentLoaded', function() {
     iniciarApp();
 });
 
-function iniciarApp(){
-    //console.log('iniciando app');
-    mostrarServicios();
+function iniciarApp() {
+    mostrarSeccion(); // Muestra una sección 
 
-    //Resalta el Div Actual segun el tab al que se presiona
-    mostrarSeccion();
+    cambiarSeccion(); // Cambia la página actual con los tabs
+    paginaSiguiente(); // Pagina Siguiente del paginador
+    paginaAnterior(); // Pagina anterior del paginador
+    mostrarServicios();// Consulta la API
+    botonesPaginador(); // Muestra u oculta los botones del paginador
 
-    //Oculta o muestra una seccion segun el tab al que se presiona
-    cambiarSeccion();
-
-    //Paginacion Siguiente y Anterior
-    paginaSiguiente();
-
-    paginaAnterior();
-
-    //Comprueba la pagina actual para ocultar o mostrar la paginacion
-    botonesPaginador(); 
-
-    //Muestra el resumen de la cita (o mensaje de error en caso de no pasar la validacion)
-    mostrarResumen();
-
-    //Almacena el nombre de la cita en el objeto 
+    // Validacion y almacenar cita
     nombreCita();
-
-    //Almacena la fecha de la cita en el objeto
-    fechaCita();
-
-    //Deshabilitar dias pasados
     deshabilitarFechaAnterior();
+    seleccionarDiaCita();
+    seleccionarHoraCita();
 
-    //Almacena la hora de la cita en el objeto
-    horaCita();
+    // Resumen de la cita con servicios y datos
+    mostrarResumen();
 }
-
-function mostrarSeccion(){
-    //Eliminar mostrar-seccion de la seccion anterior
+function mostrarSeccion() {
     const seccionAnterior = document.querySelector('.mostrar-seccion');
     if(seccionAnterior) {
         seccionAnterior.classList.remove('mostrar-seccion');
     }
+    const seccionNueva = document.querySelector(`#paso-${pagina}`);
+    seccionNueva.classList.add('mostrar-seccion');
 
-    const seccionActual = document.querySelector(`#paso-${pagina}`); //Extraigo el enlace con el numero correspondiente
-    seccionActual.classList.add('mostrar-seccion');
-
-    const tabAnterior = document.querySelector('.tabs .actual');
-    if(tabAnterior){
+    // Resalta el Tab Actual
+    const tabAnterior = document.querySelector('.actual');
+    if(tabAnterior) {
         tabAnterior.classList.remove('actual');
     }
-    
 
-    //Resalta el tab actual
-    const tab = document.querySelector(`[data-paso="${pagina}"]`);
+    // Resalta la primera opción de la navegación
+    const tab = document.querySelector(`[data-tab="${pagina}"]`);
     tab.classList.add('actual');
 }
 
-function cambiarSeccion(){
-    const enlaces = document.querySelectorAll('.tabs button');
-    enlaces.forEach ( enlace => {
-        enlace.addEventListener('click', e => {
-            e.preventDefault();
-            pagina = parseInt (e.target.dataset.paso); //Dependiendo de lo que le de click, cambia el valor de "pagina"
 
-            // Llamar la funcion de mostrar seccion
-            mostrarSeccion();
+function cambiarSeccion() {
+   const enlaces = document.querySelectorAll('.tabs button');
+   enlaces.forEach( enlace => {
+        enlace.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Conocer a que le dimos click..
+                //  console.log(this.dataset.tab);
+                // console.log( e.target.dataset.tab);
+                const paso = parseInt( e.target.dataset.tab);
+                // console.log(paso);
 
-            botonesPaginador();
+                if(paso === 1) {
+                    pagina = 1;
+                } else if( paso === 2) {
+                    pagina = 2;
+                } else if (paso === 3) {
+                    pagina = 3;
+                    mostrarResumen();
+                }
+                botonesPaginador();
         });
-    })
+   })
 }
 
-async function mostrarServicios(){
-    try{
-        const resultado = await fetch('./servicios.json'); //  "./": Carpeta principal
-        //Cuando utilizo fetch, tengo que decirle qué tipo de respuesta es el archivo que estoy llamando 
-        const db = await resultado.json(); // en este caso, le digo que es un json
+async function mostrarServicios() {
+    try {
 
-        const { servicios } = db;
+        const url = 'http://localhost:3000/servicios.php';
 
-        //generar el html
-        servicios.forEach ( servicio => { 
-            const { id, nombre ,precio} = servicio;
+        const resultado = await fetch(url);
+  
+        const db = await resultado.json();
+        console.log(db);
 
-            //DOM Scripting
+        // const { servicios} = db;
+
+        db.forEach( servicio => {
+
+            const { id, nombre, precio } = servicio;
+
             const nombreServicio = document.createElement('P');
-            nombreServicio.textContent = nombre;
             nombreServicio.classList.add('nombre-servicio');
+            nombreServicio.textContent = nombre;
 
-            //Generar el precio del servicio
             const precioServicio = document.createElement('P');
-            precioServicio.textContent = `$ ${precio}`;
             precioServicio.classList.add('precio-servicio');
-
-            //Generar div contenedor de servicio
+            precioServicio.innerHTML = `$ ${precio}`;
+            
             const servicioDiv = document.createElement('DIV');
             servicioDiv.classList.add('servicio');
-            
-            //Selecciona un servicio para la cita
+            servicioDiv.dataset.idServicio = id;
             servicioDiv.onclick = seleccionarServicio;
 
-            //Inyectar precio y nombre al div de servicio
+            // Inyectar a ServicioDiv
             servicioDiv.appendChild(nombreServicio);
             servicioDiv.appendChild(precioServicio);
 
-            //inyectarlo en el HTML
-            document.querySelector('#servicios').appendChild(servicioDiv); 
-        })
-    } catch (error){
-        console.log(error);
-        //console.log("xd");
+            document.querySelector('#servicios').appendChild(servicioDiv)
+        });
+
+        
+    } catch (error) {
+        console.log(error)
     }
 }
 
+function seleccionarServicio(e) {
+    let servicio;
 
-function seleccionarServicio(e){
-    // Forzar que el elemento al cual le damos click sea el DIV
-    let elemento;
-    if(e.target.tagName === 'P'){
-        elemento = e.target.parentElement; //Fuerzo a JS para que vaya hacia el padre del parrafo (el DIV)
-    }else{
-        elemento = e.target;//Aca va directo al DIV
+    if(e.target.tagName === 'P') {
+        servicio = e.target.parentElement;
+    } else {
+       servicio = e.target;
     }
-
-    if(elemento.classList.contains('seleccionado')){ //Pregunto si el elemento contiene la clase "seleccionado"
-        elemento.classList.remove('seleccionado'); //Le quito la clase "selecionado"
-
-        const id = parseInt(elemento.dataset.idServicio); //ParseInt convierte a numero
-
+    if(servicio.classList.contains('seleccionado')) {
+        servicio.classList.remove('seleccionado') // El Usuario eliminó el servicio
+        const id = parseInt( servicio.dataset.idServicio );
         eliminarServicio(id);
-    }else{
-        elemento.classList.add('seleccionado');
+    } else {
+        servicio.classList.add('seleccionado'); // El usuario seleccionó un servicio
+        let servicioObj = {
+            id: parseInt( servicio.dataset.idServicio ),
+            nombre: servicio.firstElementChild.textContent,
+            precio: servicio.firstElementChild.nextElementSibling.textContent
+        }; 
+        // console.log(servicioObj);
 
-        const servicioObj = {
-            id: parseInt(elemento.dataset.idServicio),//
-            nombre: elemento.firstElementChild.textContent, //El primer hijo de "elemento", que es un texto
-            precio: elemento.firstElementChild.nextElementSibling.textContent, //El segundo hijo de "elemento"
-        }
-
-        agregarServicio(servicioObj);
+        agregarServicio(servicioObj); 
     }
+}
+
+function agregarServicio(servicioObj) {
+    const { servicios } = cita;
+    cita.servicios = [...servicios,  servicioObj];
+    console.log(cita);
 }
 
 function eliminarServicio(id) {
-    const { servicios } = cita;
-    cita.servicios = servicios.filter(servicio => servicio.id !==id);//Solo traigo los que son diferentes al recien eliminado
-}
+    // console.log('EL id es ', id);
 
-function agregarServicio(servicioObj){
-    const { servicios } = cita; 
+    const { servicios } = cita;
 
-    cita.servicios = [...servicios, servicioObj] //"..." para tomar la copia de los servicios
+    // const nuevoArray = servicios.filter( servicio => servicio.id !== id );
+    cita.servicios = servicios.filter( servicio => servicio.id !== id );
+    
+    console.log(cita);
 }
 
 function paginaSiguiente() {
     const paginaSiguiente = document.querySelector('#siguiente');
-    paginaSiguiente.addEventListener('click', () =>{
+    paginaSiguiente.addEventListener('click', function() {
         pagina++;
-
         botonesPaginador();
-    })
+    });
 }
 
-function paginaAnterior(){
+function paginaAnterior() {
     const paginaAnterior = document.querySelector('#anterior');
-    paginaAnterior.addEventListener('click', () =>{
+    paginaAnterior.addEventListener('click', function() {
         pagina--;
-
         botonesPaginador();
-    })
+    });
 }
 
-function botonesPaginador(){
-    const paginaSiguiente = document.querySelector('#siguiente');
+function botonesPaginador() {
     const paginaAnterior = document.querySelector('#anterior');
-
-    if(pagina === 1){
+    const paginaSiguiente = document.querySelector('#siguiente');
+    if(pagina === 1) {
         paginaAnterior.classList.add('ocultar');
         paginaSiguiente.classList.remove('ocultar');
-    }else if(pagina === 3){
+    } else if(pagina === 3) {
         paginaSiguiente.classList.add('ocultar');
-        paginaAnterior.classList.remove('ocultar'); 
-
-        mostrarResumen(); //Estamos en la pagina 3, carga el resumen de la cita 
-    }else {
-        paginaAnterior.classList.remove('ocultar'); 
+        paginaAnterior.classList.remove('ocultar');
+        mostrarResumen(); 
+    } else if(pagina < 1 || pagina > 3) {
+        return;
+    } else {
+        paginaAnterior.classList.remove('ocultar');
         paginaSiguiente.classList.remove('ocultar');
     }
 
-    mostrarSeccion();// Cambia la seccion que se muestra por la de la pagina
+    mostrarSeccion(); // Muestra la nueva sección 
+
 }
-
-function mostrarResumen() {
-    // Destructuring 
-    const {nombre, fecha, hora, servicios} = cita; //Todo lo vamos a extraer de la cita
-
-    //Seleccionar el resumen
-    const resumenDiv = document.querySelector('.contenido-resumen');
-
-    //Limpia el HTML previo
-    while (resumenDiv.firstChild){
-        resumenDiv.removeChild( resumenDiv.firstChild ); 
-    }
-
-    //Validacion de objeto
-    if(Object.values(cita).includes('')){
-        const noServicios = document.createElement('P');
-        noServicios.textContent = 'Faltan datos de Servicios, hora, fecha o nombre';
-
-        noServicios.classList.add('invalidar-cita');
-
-        //Agregar a resumen Div
-        resumenDiv.appendChild(noServicios);
-
-        return;
-    }
-
-    const headingCita = document.createElement('H3');
-    headingCita.textContent = 'Resumen de Cita';
-
-    //Mostrar el resumen
-    const nombreCita = document.createElement('P');
-    nombreCita.innerHTML = `<span>Nombre:</span> ${nombre}`;
-    //innerHTML trata las etiquetas como etiquetas. textContent las va a tratar como texto
-
-    const fechaCita = document.createElement('P');
-    fechaCita.innerHTML = `<span>Fecha:</span> ${fecha}`;
-
-    const horaCita = document.createElement('P');
-    horaCita.innerHTML = `<span>Hora:</span> ${hora}`;
-
-    const serviciosCita = document.createElement('DIV');
-    serviciosCita.classList.add('resumen-servicios');
-
-    const headingServicios = document.createElement('H3');
-    headingServicios.textContent = 'Resumen de Servicios';
-
-    serviciosCita.appendChild(headingServicios);
-
-    let cantidad = 0; //EL PRECIO TOTAL A PAGAR
-
-    //Iterar sobre el arreglo de servicios 
-    servicios.forEach( servicio => {
-
-        const {nombre, precio} = servicio;
-        const contenedorServicio = document.createElement('DIV');
-        contenedorServicio.classList.add('contenedor-servicio');
-        
-        const textoServicio = document.createElement('P');
-        textoServicio.textContent = nombre; //Con el DESTRUCTURING me ahorro el "servicio.nombre"
-
-        const precioServicio = document.createElement('P');
-        precioServicio.textContent = precio;
-        precioServicio.classList.add('precio');
-
-        const totalServicio = precio.split('$'); //Para que el $ no nos moleste cuando calculemos el total
-        cantidad += parseInt(totalServicio[1].trim()) //El [1] tiene lo que viene despues del signo $
-
-        //Colocar texto y precio en el div
-        contenedorServicio.appendChild(textoServicio);
-        contenedorServicio.appendChild(precioServicio);
-
-        serviciosCita.appendChild(contenedorServicio);
-    })
-
-
-
-    resumenDiv.appendChild(headingCita);
-    resumenDiv.appendChild(nombreCita);
-    resumenDiv.appendChild(fechaCita);
-    resumenDiv.appendChild(horaCita);
-
-    resumenDiv.appendChild(serviciosCita);
-
-    const cantidadPagar = document.createElement('P');
-    cantidadPagar.classList.add('total');
-    cantidadPagar.innerHTML = `<span>Total a Pagar: </span> $ ${cantidad}`;
-    resumenDiv.appendChild(cantidadPagar);
-}
-
-
-
 
 function nombreCita() {
     const nombreInput = document.querySelector('#nombre');
-
     nombreInput.addEventListener('input', e => {
-        const nombreTexto = e.target.value.trim(); //trim elimina el espacio en blanco al inicio y al final
-        console.log(nombreTexto);
-
-        //Validacion de que nombreTexto debe tener algo
-        if (nombreTexto === '' || nombreTexto.length < 3){
-            mostrarAlerta('Nombre no valido', 'error');
+        const nombreTexto = e.target.value.trim(); 
+        if( nombreTexto === '') {
+            mostrarAlerta( 'Fines de Semana no permitidos', 'error');
         } else {
-            const alerta = document.querySelector('.alerta');
-            if(alerta) { alerta.remove(); }
-            cita.nombre = nombreTexto; //Le asigno al objeto cita el nombre de nombreTexto
+            // TODO: Añadirlo al objeto
+            cita.nombre = nombreTexto;
+        }
+
+    })
+}
+
+function deshabilitarFechaAnterior() {
+    const inputFecha = document.querySelector('#fecha');
+
+    const ahora = new Date();
+
+    const year = ahora.getFullYear();
+    const mes = ahora.getMonth() + 1;
+    const dia = ahora.getDate() + 1;
+
+    // Formato deseado...   2020-11-20
+    const fechaDeshabilitar =`${year}-${mes}-${dia}`;
+
+    inputFecha.min = fechaDeshabilitar;
+}
+
+function seleccionarDiaCita() {
+    const inputFecha = document.querySelector('#fecha');
+    inputFecha.addEventListener('input', function(e) {
+        const dia = new Date(e.target.value).getUTCDay(); // getUTCDay nos retorna el día de la semana de 0 a 6 siendo 0 domingo
+        console.log(dia);
+
+        if([6,0].includes(dia)){ // 6,0 Deshabilita los sábados y domingos, 0 solo el domingo
+            e.preventDefault();
+            mostrarAlerta( 'Fines de Semana no permitidos', 'error', inputFecha);
+        } else {
+            cita.fecha = e.target.value;
         }
     })
 }
 
+function seleccionarHoraCita() {
+    const inputHora = document.querySelector('#hora');
+    inputHora.addEventListener('input', function(e) {
+        const horaCita = e.target.value;
+        const hora = horaCita.split(':');
+        if(hora[0] < 10 || hora[0] > 18) {
+            mostrarAlerta('Hora no válida', 'error', inputHora );
+            setTimeout(() => {
+                e.target.value = '';
+            }, 3000);
+        } else {
+            cita.hora = e.target.value;
+        }
+    })
+}
 
+function mostrarAlerta( mensaje, tipo = null, elemento = null ) {
 
-function mostrarAlerta(mensaje, tipo){
-    //console.log('el mensaje es ', mensaje);
-
-    //Si hay una alerta previa, no crear otra
+    // Si la alerta existe no crear una nueva
     const alertaPrevia = document.querySelector('.alerta');
-    if(alertaPrevia){
+    if(alertaPrevia) {
         return;
     }
 
@@ -320,80 +265,98 @@ function mostrarAlerta(mensaje, tipo){
     alerta.textContent = mensaje;
     alerta.classList.add('alerta');
 
-    if(tipo === 'error'){
-        alerta.classList.add('error');
+    if(tipo === 'error') {
+        alerta.classList.add('error')
+    } else {
+        alerta.classList.add('exito');
     }
 
-    //Insertar en el HTML
     const formulario = document.querySelector('.formulario');
-    formulario.appendChild( alerta );
-     
-    //Eliminar la alerta despues de 3 segundos
-    setTimeout(() =>{
+    formulario.appendChild(alerta);
+
+    setTimeout( () => {
         alerta.remove();
-    }, 3000)
-}
 
-
-
-function fechaCita(){
-    const fechaInput = document.querySelector('#fecha');
-    fechaInput.addEventListener('input', e =>{
-        const dia = new Date(e.target.value).getUTCDay(); //Toma el string obtenido de la fecha y lo convierte en tipo fecha
-        //la funcion getUTCDay nos retorna el numero del dia de semana
-        if([0, 6].includes(dia)){
-            e.preventDefault();
-            fechaInput.value = ''; //Para resetear el valor de fechaInput
-            mostrarAlerta('Seleccionaste domingo o sabado lo cual no es valido', 'error');
-        }else {
-            cita.fecha = fechaInput.value;
+        if( elemento ) {
+            elemento.value = '';
         }
-
-
-
-        //const opciones = { 
-        //    weekday: 'long',
-        //    year: 'numeric',
-        //    month: 'long'
-        //}
-        //console.log(dia.toLocaleDateString('es-ES', opciones))   Te muestra la fecha pero en español
-        //moment o DOit FMS, librerias para modificar la fecha en español
-    })
+    }, 3000);
 }
 
+function mostrarResumen() {
+
+    const { nombre, fecha, hora, servicios } = cita;
+    const resumenDiv = document.querySelector('.contenido-resumen');
+
+    // Limpiar el resumen en caso de ser necesario
+    while(resumenDiv.firstChild) {
+        resumenDiv.removeChild(resumenDiv.firstChild); 
+    }
 
 
-function deshabilitarFechaAnterior(){
-    const inputFecha = document.querySelector('#fecha');
+    if(Object.values(cita).includes('') || servicios.length === 0) {
+        const noServicios = document.createElement('P');
+        noServicios.textContent = 'Faltan Datos de Servicios, Hora, Fecha o Nombre';
+        noServicios.classList.add('invalidar-cita');
+        resumenDiv.appendChild(noServicios);
 
-    const fechaAhora = new Date(); //Se crea con la fecha actual
-    const year = fechaAhora.getFullYear();
-    const mes = fechaAhora.getMonth() + 1;
-    const dia = fechaAhora.getDate() +1; //El mas 1 es para no reservar para ese mismo dia
-    
-    //Formato Deseado: AAAA-MM-DD
-    const fechaDeshabilitar = `${year}-${mes < 10 ? `0${mes}` : mes}-${dia}`; //El condicional del mes para que no haya errores
+        return;
+    } 
 
-    inputFecha.min = fechaDeshabilitar; //La fecha minima va a cambiar de forma dinamica
-}
+    // Agrega el Nombre al HTML
+    const nombreCita = document.createElement('P');
+    nombreCita.innerHTML = `<span>Nombre:</span> ${nombre}`;
+
+    // Agrega la fecha al HTML
+    const fechaCita = document.createElement('P');
+    fechaCita.innerHTML = `<span>Fecha:</span> ${fecha}`;
+
+    // aGREGA LA hORA
+    const horaCita = document.createElement('P');
+    horaCita.innerHTML = `<span>Hora:</span> ${hora}`;
+
+    const serviciosCita = document.createElement('DIV');
+    serviciosCita.classList.add('resumen-servicios');
+
+    if(servicios.length > 0 ) {
+        
+        const headingServicios = document.createElement('H3');
+        headingServicios.textContent = 'Resumen de Servicios';
+        serviciosCita.appendChild(headingServicios);
+        
+        servicios.forEach( servicio => {
+
+            const contenedorServicio = document.createElement('DIV');
+            contenedorServicio.classList.add('contenedor-servicio');
+
+            const textoServicio = document.createElement('P');
+            textoServicio.textContent = servicio.nombre;
+
+            const precioServicio = document.createElement('P');
+            precioServicio.innerHTML = `<span>Precio:</span> ${servicio.precio}`;
+
+            contenedorServicio.appendChild(textoServicio);
+            contenedorServicio.appendChild(precioServicio);
+
+            serviciosCita.appendChild(contenedorServicio);
+        });
 
 
+        // Total a pagar
+    }
 
-function horaCita() {
-    const inputHora = document.querySelector('#hora');
-    inputHora.addEventListener('input', e => {
+    // añadir al HTML
+    resumenDiv.appendChild(nombreCita);
+    resumenDiv.appendChild(fechaCita);
+    resumenDiv.appendChild(horaCita);
+    resumenDiv.appendChild(serviciosCita);
 
-        const horaCita = e.target.value;
-        const hora = horaCita.split(':'); //Divide el string de la hora cuando encuentra un :
+    // Crear el botón para la cita
 
-        if(hora[0] < 10 || hora[0] > 18){
-            mostrarAlerta('Hora no valida','error');
-            setTimeout(() => {
-                inputHora.value = ''; //Para que se reinicie el valor
-            }, 3000);
-            
-        }else{
-            cita.hora = horaCita;
-        }
-    })
+    const botonReservar = document.createElement('button');
+    botonReservar.classList.add('btn', 'btn-block');
+    botonReservar.textContent = 'RESERVAR CITA';
+
+    resumenDiv.appendChild(botonReservar);
+
 }

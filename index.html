@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Salón de Belleza</title>
+    <title>App Estética</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;700;900&display=swap" rel="stylesheet"> 
     <link rel="stylesheet" href="build/css/app.css">
 </head>
@@ -15,57 +15,74 @@
             <header class="header">
                 <h1>App Peluqueria</h1>
             </header>
+
             <nav class="tabs">
-                <button type="button" data-paso="1">Servicios</button> 
-                <button type="button" data-paso="2">Información Cliente</button>
-                <button type="button" data-paso="3">Resumen</button>
+                <button type="button" data-tab="1">Servicios</button>
+                <button type="button" data-tab="2">Información Cliente</button>
+                <button type="button" data-tab="3">Resumen</button>
             </nav>
 
-            <!--Inicia contenido app-->
-            <div id="paso-1" class="seccion">
+            <div id="paso-1" class="servicios seccion">
                 <h2>Servicios</h2>
-                <p class="text-center">Elige tus Servicios a Continuacion</p>
-                <div id="servicios" class="listado-servicios">
-                    
-                </div>
+                <p class="text-center">Elige tus servicios a continuación.</p>
+
+                <div id="servicios" class="listado-servicios"></div>
             </div>
-            <div id="paso-2" class="seccion">
+            <div id="paso-2" class="informacion-cliente seccion">
                 <h2>Tus Datos y Cita</h2>
-                <p class="text-center">Coloca tus datos y fecha de tu cita</p>
+                <p class="text-center">Coloca tus datos y fecha de tu cita.</p>
 
                 <form class="formulario">
                     <div class="campo">
                         <label for="nombre">Nombre</label>
-                        <input id="nombre" type="text" placeholder="Tu Nombre">
+                        <input 
+                            type="text" 
+                            id="nombre" 
+                            placeholder="Tu Nombre"
+                        >
                     </div>
-
                     <div class="campo">
-                        <label for="fecha">Fecha</label>
-                        <input id="fecha" type="date"> <!--El "date" habilita el cuadro del calendario-->
+                        <label for="nombre">Fecha</label>
+                        <input 
+                            type="date" 
+                            id="fecha" 
+                            min="2020-11-20"
+                        >
                     </div>
-
                     <div class="campo">
-                        <label for="hora">Hora</label>
-                        <input id="hora" type="time">
+                        <label for="nombre">Hora</label>
+                        <input 
+                            type="time" 
+                            id="hora" 
+                            min="10:00:00"
+                            max="20:00:00"
+                        >
                     </div>
                 </form>
             </div>
-            <div id="paso-3" class="seccion contenido-resumen">
+
+            <div id="paso-3" class="resumen seccion">
                 <h2>Resumen</h2>
+                <div class="contenido-resumen"></div>
             </div>
+
 
             <div class="paginacion">
-                <button id="anterior">
-                   &laquo; Anterior <!--laquo es un "<<" que aparece en un boton-->
-                </button>
+                <button 
+                    id="anterior"
+                    type="button"
+                    class="btn" 
+                >&laquo; Anterior </button>
 
-                <button id="siguiente">
-                    Siguiente &raquo; <!--raquo es un ">> " que aparece en un boton-->
-                </button>
+                <button
+                    id="siguiente"
+                    class="btn" 
+                    href="#"
+                >Siguiente &raquo; </button>
             </div>
+ 
         </div>
     </div>
-
     <script src="build/js/bundle.min.js"></script>
 </body>
 </html>
